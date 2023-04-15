@@ -130,6 +130,7 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
                 if (argv[i+1][0] != '-')
                 {
                     strcpy(args->interface, argv[i+1]);
+                    i++;
                 }
                 else{args->interface = "";}
             }
@@ -147,6 +148,7 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
                 if (argv[i+1][0] != '-')
                 {
                     args->number = atoi(argv[i+1]);
+                    i++;
                 }
             }
         }
@@ -163,6 +165,7 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
                 if (argv[i+1][0] != '-')
                 {
                     args->port = atoi(argv[i+1]);
+                    i++;
                 }
             }
         }
@@ -191,7 +194,8 @@ int main(int argc, char* argv[])
         .icmp4 = false,
         .icmp6 = false,
         .igmp = false,
-        .mld = false
+        .mld = false,
+        .ndp = false
     };
     args.interface = malloc(20 * sizeof(char));
     int parse_result = parsing_args(argc, argv, &args);
