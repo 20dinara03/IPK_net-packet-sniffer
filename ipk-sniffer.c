@@ -30,13 +30,13 @@ struct ProgramArgs
     bool mld;
 };
 
-void Error()
+int Error()
 {
     printf("Error in arguments, use -h or --help.\n");
-    exit(0);
+    return 1;
 }
 
-void print_interfaces()
+int print_interfaces()
 {
     char error_buffer[PCAP_ERRBUF_SIZE];
         pcap_if_t *interfaces, *device;
@@ -44,7 +44,7 @@ void print_interfaces()
         if (pcap_findalldevs(&interfaces, error_buffer) == -1) 
         {
             printf("Error in pcap_findalldevs(): %s", error_buffer);
-            exit(1);
+            return 1;
         }
         
         for (device = interfaces; device != NULL; device = device->next) {
@@ -52,10 +52,10 @@ void print_interfaces()
         }
 
         pcap_freealldevs(interfaces);
-        exit(0);
+        return 0;
 }
 
-void parsing_args(int argc, char *argv[], struct ProgramArgs *args)
+int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
 {
     if (argc < 3 && strcmp(argv[1], "-h") != 0 && strcmp(argv[1], "--help") != 0)
     {
@@ -64,7 +64,7 @@ void parsing_args(int argc, char *argv[], struct ProgramArgs *args)
             printf("Network interfaces not found.\n");
             printf("Usage:\n");
             printf("./ipk-sniffer [-i interface | --interface interface] {-p port [--tcp|-t] [--udp|-u]} [--arp] [--icmp4] [--icmp6] [--igmp] [--mld] {-n num}\n");
-            exit(1);
+            return 1;
         }
         else{print_interfaces();}
     }
@@ -163,12 +163,13 @@ void parsing_args(int argc, char *argv[], struct ProgramArgs *args)
         else
         {
             printf("Unknown program argument\n");
-            exit(1);
+            return 1;
         }
         i++;
     }
 
     if (strlen(args->interface) == 0){print_interfaces();}
+    return 0;
 }
 
 int main(int argc, char* argv[])
@@ -187,7 +188,8 @@ int main(int argc, char* argv[])
         .mld = false
     };
     args.interface = malloc(20 * sizeof(char));
-    parsing_args(argc, argv, &args);
+    int parse_result = parsing_args(argc, argv, &args);
+    if (parse_result != 0){return parse_result;}
     printf("OK!\n");
     return 0;
 }
