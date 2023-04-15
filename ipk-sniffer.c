@@ -28,6 +28,7 @@ struct ProgramArgs
     bool icmp6;
     bool igmp;
     bool mld;
+    bool ndp;
 };
 
 int Error()
@@ -79,7 +80,7 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
         printf("-t            filter only TCP packets\n");
         exit(0);
     }
-    int i = 0;
+    int i = 1;
     while (i < argc)
     {
         if (strcmp(argv[i], "--tcp") == 0 || strcmp(argv[i], "-t") == 0) 
@@ -116,6 +117,11 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
         {
             if (args->mld){Error();}
             args->mld = true;
+        }
+        else if (strcmp(argv[i], "--ndp") == 0) 
+        {
+            if (args->ndp){Error();}
+            args->ndp = true;
         }
         else if (strcmp(argv[i], "-i") == 0) 
         {
