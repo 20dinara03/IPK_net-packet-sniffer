@@ -133,6 +133,11 @@ void parsing_args(int argc, char *argv[], struct ProgramArgs *args)
             if (args->number != 1){Error();}
             if ((i+1) < argc)
             {
+                if (atoi(argv[i+1]) < 1)
+                {
+                    printf("Invalid n number, number has to be > than 0\n");
+                    exit(1);
+                }
                 if (argv[i+1][0] != '-')
                 {
                     args->number = atoi(argv[i+1]);
@@ -144,21 +149,26 @@ void parsing_args(int argc, char *argv[], struct ProgramArgs *args)
             if (args->port != -1){Error();}
             if ((i+1) < argc)
             {
+                if (atoi(argv[i+1]) < 0)
+                {
+                    printf("Invalid port number, number has to be >= than 0\n");
+                    exit(1);
+                }
                 if (argv[i+1][0] != '-')
                 {
                     args->port = atoi(argv[i+1]);
                 }
             }
         }
+        else
+        {
+            printf("Unknown program argument\n");
+            exit(1);
+        }
         i++;
     }
 
     if (strlen(args->interface) == 0){print_interfaces();}
-    if (args->tcp && args->udp)
-    {
-        printf("Error: we сan't have two tcp and udp flags at the same time");
-        exit(0);
-    }
 }
 
 int main(int argc, char* argv[])
