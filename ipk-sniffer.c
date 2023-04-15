@@ -15,6 +15,9 @@
 #include <netinet/ip.h>
 #include <netinet/in.h>
 #include <net/ethernet.h>
+#include <netinet/icmp6.h>
+
+pcap_t* devopen;
 
 struct ProgramArgs
 {
@@ -186,8 +189,7 @@ pcap_t* work_with_device(struct ProgramArgs *args)
     char errbuf[PCAP_ERRBUF_SIZE];
     bpf_u_int32  device_ip, netmask;
     struct bpf_program fp;
-    pcap_t *devopen;
-    char filter_exp[50];
+    char filter_exp[100];
 
     if (pcap_lookupnet(args->interface, &device_ip, &netmask, errbuf) == -1)
     {
@@ -208,7 +210,11 @@ pcap_t* work_with_device(struct ProgramArgs *args)
         return NULL;
     }
 
-    if (args->tcp && args->udp) {strcpy(filter_exp, "tcp or udp");} 
+    if (args->tcp && args->udp) 
+    {
+        if (args->port == -1) {sprintf(filter_exp, "tcp or udp portrange 0-65535");} 
+        else {sprintf(filter_exp, "tcp or udp port %d", args->port);}
+    } 
     else if (args->tcp) 
     {
         if (args->port == -1) {sprintf(filter_exp, "tcp portrange 0-65535");} 
@@ -229,16 +235,16 @@ pcap_t* work_with_device(struct ProgramArgs *args)
         if (filter_exp[0] == '\0') {sprintf(filter_exp, "igmp");}
         else {strcat(filter_exp, " or igmp");}
     }
-    // if (args->mld) 
-    // {
-    //     if (filter_exp[0] == '\0') {sprintf(filter_exp, "mld");}
-    //     else {strcat(filter_exp, " or mld");}
-    // }
-    // if (args->ndp) 
-    // {
-    //     if (filter_exp[0] == '\0') {sprintf(filter_exp, "ndp");}
-    //     else {strcat(filter_exp, " or ndp");}
-    // }
+    if (args->mld) 
+    {
+        if (filter_exp[0] == '\0') {sprintf(filter_exp, "(icmp6 and (icmp6[0] == 130 or icmp6[0] == 131))");}
+        else {strcat(filter_exp, " or (icmp6 and (icmp6[0] == 130 or icmp6[0] == 131))");}
+    }
+    if (args->ndp) 
+    {
+        if (filter_exp[0] == '\0') {sprintf(filter_exp, "(icmp6 and (icmp6[0] == 135 or icmp6[0] == 136))");}
+        else {strcat(filter_exp, " or icmp6 and (icmp6[0] == 135 or icmp6[0] == 136");}
+    }
     if (args->icmp4) 
     {
         if (filter_exp[0] == '\0') {sprintf(filter_exp, "icmp");} 
@@ -249,13 +255,17 @@ pcap_t* work_with_device(struct ProgramArgs *args)
         if (filter_exp[0] == '\0') {sprintf(filter_exp, "icmp6");} 
         else {strcat(filter_exp, " or icmp6");}
     }
-
+    printf("%s\n", filter_exp);
     if(pcap_compile(devopen, &fp, filter_exp, 0, device_ip) == -1) 
     {
-        printf("Error: compile failed\n");
+        printf("Error: compile failed (%s)\n", pcap_geterr(devopen));
         return NULL;
     }
-    
+    if(pcap_setfilter(devopen, &fp) == -1)
+	{
+		printf("Error: setting filter failed (%s)\n", pcap_geterr(devopen));
+		return NULL;
+	}
     return devopen;
 }
 
@@ -281,6 +291,14 @@ int main(int argc, char* argv[])
     {
         free(args.interface);
         return 1;
+    }
+    devopen = work_with_device(&args);
+    if (devopen != NULL)
+    {
+    //    if(pcap_loop(devopen, args.number, parse_packet, NULL))
+    //    {
+    //     return 1;
+    //    }
     }
     printf("OK!\n");
     return 0;
