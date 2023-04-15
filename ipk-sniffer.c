@@ -181,6 +181,84 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
     return 0;
 }
 
+pcap_t* work_with_device(struct ProgramArgs *args)
+{
+    char errbuf[PCAP_ERRBUF_SIZE];
+    bpf_u_int32  device_ip, netmask;
+    struct bpf_program fp;
+    pcap_t *devopen;
+    char filter_exp[50];
+
+    if (pcap_lookupnet(args->interface, &device_ip, &netmask, errbuf) == -1)
+    {
+        printf("Error with  ip and netmask of device: %s\n", errbuf);
+        return NULL;
+    }
+
+    devopen = pcap_open_live(args->interface, BUFSIZ, 1, 1000, errbuf);
+    if (devopen == NULL)
+    {
+        printf("Error with  openning device: %s\n", errbuf);
+        return NULL;
+    }
+
+    if(pcap_datalink(devopen) != DLT_EN10MB)
+    {
+        printf("Interface does not provide Ethernet headers");
+        return NULL;
+    }
+
+    if (args->tcp && args->udp) {strcpy(filter_exp, "tcp or udp");} 
+    else if (args->tcp) 
+    {
+        if (args->port == -1) {sprintf(filter_exp, "tcp portrange 0-65535");} 
+        else {sprintf(filter_exp, "tcp port %d", args->port);}
+    } 
+    else if (args->udp) 
+    {
+        if (args->port == -1) {sprintf(filter_exp, "udp portrange 0-65535");}
+        else {sprintf(filter_exp, "udp port %d", args->port);}
+    }
+    if (args->arp) 
+    {
+        if (filter_exp[0] == '\0') {sprintf(filter_exp, "arp");}
+        else {strcat(filter_exp, " or arp");}
+    }
+    if (args->igmp) 
+    {
+        if (filter_exp[0] == '\0') {sprintf(filter_exp, "igmp");}
+        else {strcat(filter_exp, " or igmp");}
+    }
+    // if (args->mld) 
+    // {
+    //     if (filter_exp[0] == '\0') {sprintf(filter_exp, "mld");}
+    //     else {strcat(filter_exp, " or mld");}
+    // }
+    // if (args->ndp) 
+    // {
+    //     if (filter_exp[0] == '\0') {sprintf(filter_exp, "ndp");}
+    //     else {strcat(filter_exp, " or ndp");}
+    // }
+    if (args->icmp4) 
+    {
+        if (filter_exp[0] == '\0') {sprintf(filter_exp, "icmp");} 
+        else {strcat(filter_exp, " or icmp");}
+    }
+    if (args->icmp6) 
+    {
+        if (filter_exp[0] == '\0') {sprintf(filter_exp, "icmp6");} 
+        else {strcat(filter_exp, " or icmp6");}
+    }
+
+    if(pcap_compile(devopen, &fp, filter_exp, 0, device_ip) == -1) 
+    {
+        printf("Error: compile failed\n");
+        return NULL;
+    }
+    
+    return devopen;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc == 1){Error();}
@@ -199,7 +277,11 @@ int main(int argc, char* argv[])
     };
     args.interface = malloc(20 * sizeof(char));
     int parse_result = parsing_args(argc, argv, &args);
-    if (parse_result != 0){return parse_result;}
+    if (parse_result != 0)
+    {
+        free(args.interface);
+        return 1;
+    }
     printf("OK!\n");
     return 0;
 }
