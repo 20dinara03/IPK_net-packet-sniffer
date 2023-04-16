@@ -212,18 +212,18 @@ pcap_t* work_with_device(struct ProgramArgs *args)
 
     if (args->tcp && args->udp) 
     {
-        if (args->port == -1) {sprintf(filter_exp, "tcp or udp portrange 0-65535");} 
-        else {sprintf(filter_exp, "tcp or udp port %d", args->port);}
+        if (args->port == -1) {sprintf(filter_exp, "(tcp and portrange 0-65535) or (udp and portrange 0-65535)");} 
+        else {sprintf(filter_exp, "(tcp and port %d) or (udp and port %d)", args->port, args->port); }
     } 
     else if (args->tcp) 
     {
-        if (args->port == -1) {sprintf(filter_exp, "tcp portrange 0-65535");} 
-        else {sprintf(filter_exp, "tcp port %d", args->port);}
+        if (args->port == -1) {sprintf(filter_exp, "(tcp and portrange 0-65535)");} 
+        else {sprintf(filter_exp, "(tcp and port %d)", args->port);}
     } 
     else if (args->udp) 
     {
-        if (args->port == -1) {sprintf(filter_exp, "udp portrange 0-65535");}
-        else {sprintf(filter_exp, "udp port %d", args->port);}
+        if (args->port == -1) {sprintf(filter_exp, "(udp and portrange 0-65535)");}
+        else {sprintf(filter_exp, "(udp and port %d)", args->port);}
     }
     if (args->arp) 
     {
@@ -235,15 +235,13 @@ pcap_t* work_with_device(struct ProgramArgs *args)
         if (filter_exp[0] == '\0') {sprintf(filter_exp, "igmp");}
         else {strcat(filter_exp, " or igmp");}
     }
-    if (args->mld) 
-    {
-        if (filter_exp[0] == '\0') {sprintf(filter_exp, "(icmp6 and (icmp6[0] == 130 or icmp6[0] == 131))");}
-        else {strcat(filter_exp, " or (icmp6 and (icmp6[0] == 130 or icmp6[0] == 131))");}
+    if (args->mld) {
+        if (filter_exp[0] == '\0') { sprintf(filter_exp, "(icmp6 and (icmp6[0] >= 130 and icmp6[0] <= 132))"); }
+        else { strcat(filter_exp, " or (icmp6 and (icmp6[0] >= 130 and icmp6[0] <= 132))"); }
     }
-    if (args->ndp) 
-    {
-        if (filter_exp[0] == '\0') {sprintf(filter_exp, "(icmp6 and (icmp6[0] == 135 or icmp6[0] == 136))");}
-        else {strcat(filter_exp, " or icmp6 and (icmp6[0] == 135 or icmp6[0] == 136");}
+    if (args->ndp) {
+        if (filter_exp[0] == '\0') { sprintf(filter_exp, "(icmp6 and (icmp6[0] >= 133 and icmp6[0] <= 137))"); }
+        else { strcat(filter_exp, " or (icmp6 and (icmp6[0] >= 133 and icmp6[0] <= 137))"); }
     }
     if (args->icmp4) 
     {
