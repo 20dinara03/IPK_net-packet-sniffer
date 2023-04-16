@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include<pcap/pcap.h>
 #include<arpa/inet.h>
 #include<netinet/if_ether.h>
@@ -304,7 +305,9 @@ int main(int argc, char* argv[])
             char dst_ip[INET_ADDRSTRLEN];
             char src_ip6[INET6_ADDRSTRLEN];
             char dst_ip6[INET6_ADDRSTRLEN];
-
+            char time[30];
+	        strftime(time,sizeof(time),"%H:%M:%S", localtime(&header.ts.tv_sec));
+            printf("%s.%ld\n",time, header.ts.tv_usec );
             uint8_t* ptr;
 
             // Print source MAC address
