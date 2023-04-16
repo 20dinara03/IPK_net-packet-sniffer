@@ -291,13 +291,126 @@ int main(int argc, char* argv[])
         return 1;
     }
     devopen = work_with_device(&args);
-    if (devopen != NULL)
-    {
-    //    if(pcap_loop(devopen, args.number, parse_packet, NULL))
-    //    {
-    //     return 1;
-    //    }
+    if (devopen != NULL) {
+        struct pcap_pkthdr header;
+        const u_char* packet;
+
+        int k = 0;
+        while (k < args.number) {
+            packet = pcap_next(devopen, &header);
+            struct ether_header* ethernet;
+            ethernet = (struct ether_header*)(packet);
+            char src_ip[INET_ADDRSTRLEN];
+            char dst_ip[INET_ADDRSTRLEN];
+            char src_ip6[INET6_ADDRSTRLEN];
+            char dst_ip6[INET6_ADDRSTRLEN];
+
+            uint8_t* ptr;
+
+            // Print source MAC address
+            ptr = ethernet->ether_shost;
+            printf("src MAC:  ");
+            for (int i = ETHER_ADDR_LEN; i > 0; i--) {
+                if (i == ETHER_ADDR_LEN) {
+                    printf(" ");
+                }
+                else {
+                    printf(":");
+                }
+                printf("%02X", *ptr++);
+            }
+            printf("\n");
+
+
+            // Print destination MAC address
+            ptr = ethernet->ether_dhost;
+            printf("dst MAC:  ");
+            for (int i = ETHER_ADDR_LEN; i > 0; i--) {
+                if (i == ETHER_ADDR_LEN) {
+                    printf(" ");
+                }
+                else {
+                    printf(":");
+                }
+                printf("%02X", *ptr++);
+            }
+            printf("\n");
+
+            // Print frame length
+            printf("frame length: %d bytes\n", header.len);
+
+            if (ntohs(ethernet->ether_type) == ETHERTYPE_IP) {
+                struct ip* ipHeader;
+                ipHeader = (struct ip*)(packet + 14);
+                // Print source and destination IP addresses
+                inet_ntop(AF_INET, &ipHeader->ip_src, src_ip, INET_ADDRSTRLEN);
+                inet_ntop(AF_INET, &ipHeader->ip_dst, dst_ip, INET_ADDRSTRLEN);
+                printf("src IP: %s\n", src_ip);
+                printf("dst IP: %s\n", dst_ip);
+                if (ipHeader->ip_p == IPPROTO_TCP) {
+                    struct tcphdr* tcp_header = (struct tcphdr*)(packet + 14);
+                    printf("src port: %d\n", ntohs(tcp_header->th_sport));
+                    printf("dst port: %d\n", ntohs(tcp_header->th_dport));
+                }
+                else if (ipHeader->ip_p == IPPROTO_UDP) {
+                    struct udphdr* udp_header = (struct udphdr*)(packet + 14);
+                    printf("src port: %d\n", ntohs(udp_header->uh_sport));
+                    printf("dst port: %d\n", ntohs(udp_header->uh_dport));
+                }
+                // else if (ipHeader->ip_p == 1) {
+                //     struct icmphdr* icmp_header = (struct icmphdr*)(packet + 14);
+                // }
+            }
+            else if (ntohs(ethernet->ether_type) == ETHERTYPE_ARP) {
+                struct ether_arp* arp_header = (struct ether_arp*)(packet + 14);
+                char arpbuf1[100] = { '\0' };
+                char arpbuf2[100] = { '\0' };
+                printf("src IP: %s\n", inet_ntop(AF_INET, arp_header->arp_spa, arpbuf1, 100));
+                printf("dst IP: %s\n", inet_ntop(AF_INET, arp_header->arp_tpa, arpbuf2, 100));
+            }
+            else if (ntohs(ethernet->ether_type) == ETHERTYPE_IPV6) {
+                struct ip6_hdr* ip6_header = (struct ip6_hdr*)(packet + 14);
+                inet_ntop(AF_INET6, &ip6_header->ip6_src, src_ip6, INET6_ADDRSTRLEN);
+                inet_ntop(AF_INET6, &ip6_header->ip6_dst, dst_ip6, INET6_ADDRSTRLEN);
+                printf("src IP: %s\n", src_ip6);
+                printf("dst IP: %s\n", dst_ip6);
+
+                if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IPPROTO_TCP) {
+                    struct tcphdr* tcp_header = (struct tcphdr*)(packet + 14);
+                    printf("src port: %d\n", ntohs(tcp_header->th_sport));
+                    printf("dst port: %d\n", ntohs(tcp_header->th_dport));
+                }
+                else if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IPPROTO_UDP) {
+                    struct udphdr* udp_header = (struct udphdr*)(packet + 14);
+                    printf("src port: %d\n", ntohs(udp_header->uh_sport));
+                    printf("dst port: %d\n", ntohs(udp_header->uh_dport));
+                }
+                // else if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == 58) {
+                //     struct icmphdr* icmp_header = (struct icmphdr*)(packet + 14);
+                // }
+            }
+
+            char asciiprint[17] = { '\0' };
+            int j = 0;
+            while (j < (int)header.caplen) {
+                if (j % 16 == 0) {
+                    printf(" %s\n", asciiprint);
+                    memset(asciiprint, '\0', 17);
+                    printf("0x%04x ", j);
+                }
+                if (packet[j] < 33 || packet[j] > 127) {
+                    asciiprint[j % 16] = '.';
+                }
+                else {
+                    asciiprint[j % 16] = packet[j];
+                }
+                printf("%02x ", packet[j]);
+                j++;
+            }
+            printf(" %*s\n\n", (16 - j % 16) * 3 + ((j % 16) ? 1 : 0), asciiprint);
+            k++;
+        }
     }
-    printf("OK!\n");
+    pcap_close(devopen);
     return 0;
 }
