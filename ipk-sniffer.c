@@ -37,7 +37,7 @@ struct ProgramArgs
 
 int Error()
 {
-    printf("Error in arguments, use -h or --help.\n");
+    exit(1);
     return 1;
 }
 
@@ -55,6 +55,7 @@ int print_interfaces()
         if (pcap_findalldevs(&interfaces, error_buffer) == -1) 
         {
             printf("Error in pcap_findalldevs(): %s", error_buffer);
+            exit(1);
             return 1;
         }
         
@@ -90,6 +91,7 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
             printf("Network interfaces not found.\n");
             printf("Usage:\n");
             printf("./ipk-sniffer [-i interface | --interface interface] {-p port [--tcp|-t] [--udp|-u]} [--arp] [--icmp4] [--icmp6] [--igmp] [--mld] {-n num}\n");
+            exit(1);
             return 1;
         }
         else{print_interfaces(); exit(0);}
@@ -306,14 +308,14 @@ pcap_t* work_with_device(struct ProgramArgs *args)
         else {strcat(filter_exp, " or igmp");}
     }
     // If MLD protocol is selected, add ICMPv6 MLD to the filter expression.
-    if (args->mld) {
-        if (filter_exp[0] == '\0') { sprintf(filter_exp, "(icmp6 and (icmp6[0] >= 130 and icmp6[0] <= 132))"); }
-        else { strcat(filter_exp, " or (icmp6 and (icmp6[0] >= 130 and icmp6[0] <= 132))"); }
-    }
-    if (args->ndp) {
-        if (filter_exp[0] == '\0') { sprintf(filter_exp, "(icmp6 and (icmp6[0] >= 133 and icmp6[0] <= 137))"); }
-        else { strcat(filter_exp, " or (icmp6 and (icmp6[0] >= 133 and icmp6[0] <= 137))"); }
-    }
+    // if (args->mld) {
+    //     if (filter_exp[0] == '\0') { sprintf(filter_exp, "(icmp6 and (icmp6[0] >= 130 and icmp6[0] <= 132))"); }
+    //     else { strcat(filter_exp, " or (icmp6 and (icmp6[0] >= 130 and icmp6[0] <= 132))"); }
+    // }
+    // if (args->ndp) {
+    //     if (filter_exp[0] == '\0') { sprintf(filter_exp, "(icmp6 and (icmp6[0] >= 133 and icmp6[0] <= 137))"); }
+    //     else { strcat(filter_exp, " or (icmp6 and (icmp6[0] >= 133 and icmp6[0] <= 137))"); }
+    // }
     // If ICMPv4 protocol is selected, add ICMPv4 to the filter expression.
     if (args->icmp4) 
     {
@@ -368,6 +370,8 @@ int main(int argc, char* argv[])
         free(args.interface);
         return 1;
     }
+    else
+    {
     devopen = work_with_device(&args);
     if (devopen != NULL) {
         struct pcap_pkthdr header;
@@ -386,6 +390,7 @@ int main(int argc, char* argv[])
             char time[100] = {'\0'};
             // Format timestamp string
 	        strftime(time,sizeof(time),"%H:%M:%S", localtime(&header.ts.tv_sec));
+            printf("timestamp: ");
             printf("%s.%ld\n",time, (long)header.ts.tv_usec );
             uint8_t* ptr;
 
@@ -512,4 +517,5 @@ int main(int argc, char* argv[])
     // Close the device and return 0 to indicate successful completion.
     pcap_close(devopen);
     return 0;
+    }
 }
