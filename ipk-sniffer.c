@@ -11,9 +11,9 @@
 #include<netinet/ether.h>
 #include<netinet/ip6.h>
 #include<netinet/tcp.h>
+#include <netinet/ip.h>
 #include<netinet/ip_icmp.h>
 #include<netinet/udp.h>
-#include <netinet/ip.h>
 #include <netinet/in.h>
 #include <net/ethernet.h>
 #include <netinet/icmp6.h>
@@ -71,7 +71,7 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
             printf("./ipk-sniffer [-i interface | --interface interface] {-p port [--tcp|-t] [--udp|-u]} [--arp] [--icmp4] [--icmp6] [--igmp] [--mld] {-n num}\n");
             return 1;
         }
-        else{print_interfaces();}
+        else{print_interfaces(); exit(0);}
     }
     else if (strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0)
     {
@@ -181,7 +181,7 @@ int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
         i++;
     }
 
-    if (strlen(args->interface) == 0){print_interfaces();}
+    if (strlen(args->interface) == 0){print_interfaces();exit(0);}
     return 0;
 }
 
@@ -209,6 +209,18 @@ pcap_t* work_with_device(struct ProgramArgs *args)
     {
         printf("Interface does not provide Ethernet headers");
         return NULL;
+    }
+    
+    if (!(args->arp || args->icmp4 || args->icmp6 || args->igmp || args->mld || args->ndp || args->tcp || args->udp))
+    {
+        args->arp = true;
+        args->icmp4 = true;
+        args->icmp6 = true;
+        args->igmp = true;
+        args->mld = true;
+        args->ndp = true;
+        args->tcp = true;
+        args->udp = true;
     }
 
     if (args->tcp && args->udp) 
@@ -254,7 +266,6 @@ pcap_t* work_with_device(struct ProgramArgs *args)
         if (filter_exp[0] == '\0') {sprintf(filter_exp, "icmp6");} 
         else {strcat(filter_exp, " or icmp6");}
     }
-    printf("%s\n", filter_exp);
     if(pcap_compile(devopen, &fp, filter_exp, 0, device_ip) == -1) 
     {
         printf("Error: compile failed (%s)\n", pcap_geterr(devopen));
@@ -301,18 +312,18 @@ int main(int argc, char* argv[])
             packet = pcap_next(devopen, &header);
             struct ether_header* ethernet;
             ethernet = (struct ether_header*)(packet);
-            char src_ip[INET_ADDRSTRLEN];
-            char dst_ip[INET_ADDRSTRLEN];
-            char src_ip6[INET6_ADDRSTRLEN];
-            char dst_ip6[INET6_ADDRSTRLEN];
-            char time[30];
+            char src_ip[100] = {'\0'};
+            char dst_ip[100] = {'\0'};
+            char src_ip6[100] = {'\0'};
+            char dst_ip6[100] = {'\0'};
+            char time[100] = {'\0'};
 	        strftime(time,sizeof(time),"%H:%M:%S", localtime(&header.ts.tv_sec));
-            printf("%s.%ld\n",time, header.ts.tv_usec );
+            printf("%s.%ld\n",time, (long)header.ts.tv_usec );
             uint8_t* ptr;
 
             // Print source MAC address
             ptr = ethernet->ether_shost;
-            printf("src MAC:  ");
+            printf("src MAC:");
             for (int i = ETHER_ADDR_LEN; i > 0; i--) {
                 if (i == ETHER_ADDR_LEN) {
                     printf(" ");
@@ -327,7 +338,7 @@ int main(int argc, char* argv[])
 
             // Print destination MAC address
             ptr = ethernet->ether_dhost;
-            printf("dst MAC:  ");
+            printf("dst MAC:");
             for (int i = ETHER_ADDR_LEN; i > 0; i--) {
                 if (i == ETHER_ADDR_LEN) {
                     printf(" ");
@@ -379,12 +390,12 @@ int main(int argc, char* argv[])
                 printf("dst IP: %s\n", dst_ip6);
 
                 if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IPPROTO_TCP) {
-                    struct tcphdr* tcp_header = (struct tcphdr*)(packet + 14);
+                    struct tcphdr* tcp_header = (struct tcphdr*)(packet + 14 + 40);
                     printf("src port: %d\n", ntohs(tcp_header->th_sport));
                     printf("dst port: %d\n", ntohs(tcp_header->th_dport));
                 }
                 else if (ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt == IPPROTO_UDP) {
-                    struct udphdr* udp_header = (struct udphdr*)(packet + 14);
+                    struct udphdr* udp_header = (struct udphdr*)(packet + 14 + 40);
                     printf("src port: %d\n", ntohs(udp_header->uh_sport));
                     printf("dst port: %d\n", ntohs(udp_header->uh_dport));
                 }
@@ -411,6 +422,7 @@ int main(int argc, char* argv[])
                 j++;
             }
             printf(" %*s\n\n", (16 - j % 16) * 3 + ((j % 16) ? 1 : 0), asciiprint);
+
             k++;
         }
     }
