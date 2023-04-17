@@ -115,3 +115,36 @@ Network Data Structures:
 * [Sniffer example of TCP/IP packet capture using libpcap](https://www.tcpdump.org/other/sniffex.c)
 * [Parsing arguments](https://stackoverflow.com/questions/9642732/parsing-command-line-arguments-in-c)
 * [Example sniffer](https://eax.me/libpcap/)
+
+# Theory
+## What is sniffer
+A sniffer is a program or device that allows you to monitor and analyze network traffic at the packet level. Using a sniffer, you can capture and analyze network packets that are transmitted over the network between devices and obtain information about the transmitted data.
+
+Sniffers are used for various purposes such as analyzing network traffic, detecting security breaches, debugging and testing networks.
+
+Sniffers work at the network interface level. They can be implemented as software on a computer or as a physical device connected to a network interface.
+
+Software sniffers work like this:
+
+Packet Capture: The sniffer captures network packets that are sent over the network between devices.
+
+Packet sniffing: The sniffer parses captured packets and extracts information from packet headers such as destination and send IP addresses and ports, protocol types, sequence numbers, and more.
+
+Data display: The sniffer displays the information obtained from the captured packets in a user-friendly way, such as a table or graph.
+
+Data Filtering: The sniffer can filter captured packets based on various criteria such as IP address, port, or protocol type to display only the data that is important to the user.
+
+## How working pcap functions
+The pcap functions provide the programmer with the ability to capture, filter, parse, and process packets transmitted over the network. With pcap, you can implement various sniffer functions, such as:
+
+Packet capturing: pcap_open_live() - Opens a network interface for capturing packets.
+
+Packet filtering: pcap_compile() and pcap_setfilter() - compile and set a filter for captured packets.
+
+Packet handling: pcap_dispatch() - Processes captured packets in real time.
+
+Saving packets: pcap_dump_open() and pcap_dump() - save captured packets to a file.
+
+Packet analysis: pcap_next() and pcap_next_ex() - return the next captured packet for analysis.
+
+Close session: pcap_close() Closes a packet capture session.
