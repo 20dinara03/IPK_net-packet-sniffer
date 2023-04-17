@@ -132,6 +132,159 @@ Parses command-line arguments and stores them in a struct ProgramArgs.
      deactivate Main
    ```
 
+# Testing
+## What was tested
+All runs tested:
+* How the program handles arguments
+* How the program composes the string for the filter
+* How the program catches the necessary packages
+* And how does she write out information about them
+## Why it was tested
+On some launches, there was a segmentation fault before, so testing was carried out with different filters to make sure the code worked correctly
+## How it was tested/what was the testing environment
+The program was tested on linux os and nixOS.
+For testing, I used a program that sends packages from this repository:
+https://github.com/turytsia/vut-ipk-packegen
+I entered the arguments I needed, got the output and checked with expectation
+## what were the inputs, expected outputs, and actual outputs
+#### Input
+sudo ./ipk-sniffer -i eth0 --udp
+#### expected outputs, and actual outputs
+timestamp: 18:39:01.688101
+src MAC: 00:15:5D:10:EB:5E
+dst MAC: 01:00:5E:7F:FF:FA
+frame length: 216 bytes
+src IP: 172.25.64.1
+dst IP: 239.255.255.250
+src port: 17664
+dst port: 202
+
+0x0000 01 00 5e 7f ff fa 00 15 5d 10 eb 5e 08 00 45 00  ..^....]..^..E.
+0x0010 00 ca 8c 43 00 00 01 11 50 cb ac 19 40 01 ef ff  ...C....P...@...
+0x0020 ff fa cf ec 07 6c 00 b6 47 65 4d 2d 53 45 41 52  .....l..GeM-SEAR
+0x0030 43 48 20 2a 20 48 54 54 50 2f 31 2e 31 0d 0a 48  CH.*.HTTP/1.1..H
+0x0040 4f 53 54 3a 20 32 33 39 2e 32 35 35 2e 32 35 35  OST:.239.255.255
+0x0050 2e 32 35 30 3a 31 39 30 30 0d 0a 4d 41 4e 3a 20  .250:1900..MAN:.
+0x0060 22 73 73 64 70 3a 64 69 73 63 6f 76 65 72 22 0d  "ssdp:discover".
+0x0070 0a 4d 58 3a 20 31 0d 0a 53 54 3a 20 75 72 6e 3a  .MX:.1..ST:.urn:
+0x0080 64 69 61 6c 2d 6d 75 6c 74 69 73 63 72 65 65 6e  dial-multiscreen
+0x0090 2d 6f 72 67 3a 73 65 72 76 69 63 65 3a 64 69 61  -org:service:dia
+0x00a0 6c 3a 31 0d 0a 55 53 45 52 2d 41 47 45 4e 54 3a  l:1..USER-AGENT:
+0x00b0 20 47 6f 6f 67 6c 65 20 43 68 72 6f 6d 65 2f 31  .Google.Chrome/1
+0x00c0 31 32 2e 30 2e 35 36 31 35 2e 38 36 20 57 69 6e  12.0.5615.86.Win
+0x00d0 64 6f 77 73 0d 0a 0d 0a                   dows....
+
+#### Input
+ sudo ./ipk-sniffer -i eth0 -n 5
+#### expected outputs, and actual outputs
+timestamp: 18:17:21.864034
+src MAC: 00:15:5D:10:EB:5E
+dst MAC: 01:00:5E:7F:FF:FA
+frame length: 179 bytes
+src IP: 172.25.64.1
+dst IP: 239.255.255.250
+src port: 17664
+dst port: 165
+ 
+0x0000 01 00 5e 7f ff fa 00 15 5d 10 eb 5e 08 00 45 00  ..^....]..^..E.
+0x0010 00 a5 8c 15 00 00 04 11 4e 1e ac 19 40 01 ef ff  ........N...@...
+0x0020 ff fa ce c3 07 6c 00 91 5a 69 4d 2d 53 45 41 52  .....l..ZiM-SEAR
+0x0030 43 48 20 2a 20 48 54 54 50 2f 31 2e 31 0d 0a 48  CH.*.HTTP/1.1..H
+0x0040 6f 73 74 3a 20 32 33 39 2e 32 35 35 2e 32 35 35  ost:.239.255.255
+0x0050 2e 32 35 30 3a 31 39 30 30 0d 0a 53 54 3a 20 75  .250:1900..ST:.u
+0x0060 72 6e 3a 73 63 68 65 6d 61 73 2d 75 70 6e 70 2d  rn:schemas-upnp-
+0x0070 6f 72 67 3a 64 65 76 69 63 65 3a 49 6e 74 65 72  org:device:Inter
+0x0080 6e 65 74 47 61 74 65 77 61 79 44 65 76 69 63 65  netGatewayDevice
+0x0090 3a 31 0d 0a 4d 61 6e 3a 20 22 73 73 64 70 3a 64  :1..Man:."ssdp:d
+0x00a0 69 73 63 6f 76 65 72 22 0d 0a 4d 58 3a 20 33 0d  iscover"..MX:.3.
+0x00b0 0a 0d 0a                                       ...
+
+timestamp: 18:17:24.875248
+src MAC: 00:15:5D:10:EB:5E
+dst MAC: 01:00:5E:7F:FF:FA
+frame length: 179 bytes
+src IP: 172.25.64.1
+dst IP: 239.255.255.250
+src port: 17664
+dst port: 165
+
+0x0000 01 00 5e 7f ff fa 00 15 5d 10 eb 5e 08 00 45 00  ..^....]..^..E.
+0x0010 00 a5 8c 16 00 00 04 11 4e 1d ac 19 40 01 ef ff  ........N...@...
+0x0020 ff fa ce c3 07 6c 00 91 5a 69 4d 2d 53 45 41 52  .....l..ZiM-SEAR
+0x0030 43 48 20 2a 20 48 54 54 50 2f 31 2e 31 0d 0a 48  CH.*.HTTP/1.1..H
+0x0040 6f 73 74 3a 20 32 33 39 2e 32 35 35 2e 32 35 35  ost:.239.255.255
+0x0050 2e 32 35 30 3a 31 39 30 30 0d 0a 53 54 3a 20 75  .250:1900..ST:.u
+0x0060 72 6e 3a 73 63 68 65 6d 61 73 2d 75 70 6e 70 2d  rn:schemas-upnp-
+0x0070 6f 72 67 3a 64 65 76 69 63 65 3a 49 6e 74 65 72  org:device:Inter
+0x0080 6e 65 74 47 61 74 65 77 61 79 44 65 76 69 63 65  netGatewayDevice
+0x0090 3a 31 0d 0a 4d 61 6e 3a 20 22 73 73 64 70 3a 64  :1..Man:."ssdp:d
+0x00a0 69 73 63 6f 76 65 72 22 0d 0a 4d 58 3a 20 33 0d  iscover"..MX:.3.
+0x00b0 0a 0d 0a                                       ...
+
+timestamp: 18:17:25.646606
+src MAC: 00:15:5D:10:EB:5E
+dst MAC: 33:33:00:01:00:02
+frame length: 134 bytes
+src IP: fe80::aea5:e547:d9b6:31c2
+dst IP: ff02::1:2
+src port: 546
+dst port: 547
+
+0x0000 33 33 00 01 00 02 00 15 5d 10 eb 5e 86 dd 60 08  33......]..^..`.
+0x0010 cc c1 00 50 11 01 fe 80 00 00 00 00 00 00 ae a5  ...P............
+0x0020 e5 47 d9 b6 31 c2 ff 02 00 00 00 00 00 00 00 00  .G..1...........
+0x0030 00 00 00 01 00 02 02 22 02 23 00 50 4a 77 01 6a  .......".#.PJw.j
+0x0040 40 cc 00 08 00 02 0c 22 00 01 00 0e 00 01 00 01  @......"........
+0x0050 28 f7 33 8d 28 cd c4 a0 47 1d 00 03 00 0c 3b 00  (.3.(...G.....;.
+0x0060 15 5d 00 00 00 00 00 00 00 00 00 10 00 0e 00 00  .]..............
+0x0070 01 37 00 08 4d 53 46 54 20 35 2e 30 00 06 00 06  .7..MSFT.5.0....
+0x0080 00 11 00 17 00 18                           ......
+
+timestamp: 18:17:27.885024
+src MAC: 00:15:5D:10:EB:5E
+dst MAC: 01:00:5E:7F:FF:FA
+frame length: 179 bytes
+src IP: 172.25.64.1
+dst IP: 239.255.255.250
+src port: 17664
+dst port: 165
+
+0x0000 01 00 5e 7f ff fa 00 15 5d 10 eb 5e 08 00 45 00  ..^....]..^..E.
+0x0010 00 a5 8c 17 00 00 04 11 4e 1c ac 19 40 01 ef ff  ........N...@...
+0x0020 ff fa ce c3 07 6c 00 91 5a 69 4d 2d 53 45 41 52  .....l..ZiM-SEAR
+0x0030 43 48 20 2a 20 48 54 54 50 2f 31 2e 31 0d 0a 48  CH.*.HTTP/1.1..H
+0x0040 6f 73 74 3a 20 32 33 39 2e 32 35 35 2e 32 35 35  ost:.239.255.255
+0x0050 2e 32 35 30 3a 31 39 30 30 0d 0a 53 54 3a 20 75  .250:1900..ST:.u
+0x0060 72 6e 3a 73 63 68 65 6d 61 73 2d 75 70 6e 70 2d  rn:schemas-upnp-
+0x0070 6f 72 67 3a 64 65 76 69 63 65 3a 49 6e 74 65 72  org:device:Inter
+0x0080 6e 65 74 47 61 74 65 77 61 79 44 65 76 69 63 65  netGatewayDevice
+0x0090 3a 31 0d 0a 4d 61 6e 3a 20 22 73 73 64 70 3a 64  :1..Man:."ssdp:d
+0x00a0 69 73 63 6f 76 65 72 22 0d 0a 4d 58 3a 20 33 0d  iscover"..MX:.3.
+0x00b0 0a 0d 0a                                       ...
+
+timestamp: 18:17:30.904490
+src MAC: 00:15:5D:10:EB:5E
+dst MAC: 01:00:5E:7F:FF:FA
+frame length: 179 bytes
+src IP: 172.25.64.1
+dst IP: 239.255.255.250
+src port: 17664
+dst port: 165
+
+0x0000 01 00 5e 7f ff fa 00 15 5d 10 eb 5e 08 00 45 00  ..^....]..^..E.
+0x0010 00 a5 8c 18 00 00 04 11 4e 1b ac 19 40 01 ef ff  ........N...@...
+0x0020 ff fa ce c3 07 6c 00 91 5a 69 4d 2d 53 45 41 52  .....l..ZiM-SEAR
+0x0030 43 48 20 2a 20 48 54 54 50 2f 31 2e 31 0d 0a 48  CH.*.HTTP/1.1..H
+0x0040 6f 73 74 3a 20 32 33 39 2e 32 35 35 2e 32 35 35  ost:.239.255.255
+0x0050 2e 32 35 30 3a 31 39 30 30 0d 0a 53 54 3a 20 75  .250:1900..ST:.u
+0x0060 72 6e 3a 73 63 68 65 6d 61 73 2d 75 70 6e 70 2d  rn:schemas-upnp-
+0x0070 6f 72 67 3a 64 65 76 69 63 65 3a 49 6e 74 65 72  org:device:Inter
+0x0080 6e 65 74 47 61 74 65 77 61 79 44 65 76 69 63 65  netGatewayDevice
+0x0090 3a 31 0d 0a 4d 61 6e 3a 20 22 73 73 64 70 3a 64  :1..Man:."ssdp:d
+0x00a0 69 73 63 6f 76 65 72 22 0d 0a 4d 58 3a 20 33 0d  iscover"..MX:.3.
+0x00b0 0a 0d 0a                                       ...
+
+#### And ect.
 
 # Bibliography
 * [PROGRAMMING WITH PCAP](https://www.tcpdump.org/pcap.html)
