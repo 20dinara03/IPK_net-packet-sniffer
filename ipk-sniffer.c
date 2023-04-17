@@ -238,7 +238,7 @@ pcap_t* work_with_device(struct ProgramArgs *args)
     char errbuf[PCAP_ERRBUF_SIZE];
     bpf_u_int32  device_ip, netmask;
     struct bpf_program fp;
-    char filter_exp[100];
+    char filter_exp[100] = {'\0'};
 
     // get the device IP and netmask
     if (pcap_lookupnet(args->interface, &device_ip, &netmask, errbuf) == -1)
