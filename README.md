@@ -80,6 +80,29 @@ Network Data Structures:
 * <net/ethernet.h>
 * <netinet/icmp6.h>
 
+## Functions
+### int print_interfaces()
+ This function prints the names of all available network interfaces.
+ @return 0 if successful, 1 if an error occurs
+### int parsing_args(int argc, char *argv[], struct ProgramArgs *args)
+Parses command-line arguments and stores them in a struct ProgramArgs.
+ @param argc The number of arguments passed to the program.
+ @param argv An array of strings representing the arguments passed to the program.
+ @param args A pointer to a struct ProgramArgs where the parsed arguments will be stored.
+ @return 0 on success, 1 on failure.
+### pcap_t* work_with_device(struct ProgramArgs *args)
+ @brief capture packets from a network interface, based on user-specified protocols and filters
+ @param args pointer to ProgramArgs struct containing user-specified command line arguments
+ @return pointer to a pcap_t struct, which can be used to capture packets from the specified network interface
+### main(int argc, const char * argv[])
+ Description: The main function for the client program Parameters:
+ argc - the number of arguments passed to the program
+ argv - an array of strings containing the arguments passed to the program Returns: int (0 if successful)
+
+ ## Global Variables
+ ### pcap_t* devopen
+ A pointer named devopen of type pcap_t. This is likely to be used for opening and reading packets from a network device using the libpcap library.
+
 # Sequence Diagram
    * participant User
    * participant Main
